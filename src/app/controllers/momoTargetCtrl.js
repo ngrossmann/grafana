@@ -34,8 +34,5 @@ function (angular) {
         .performSuggestQuery(query, 'metrics')
         .then(callback);
     };
-
-
   });
-
 });
