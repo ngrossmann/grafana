@@ -42,13 +42,14 @@ function (angular, _, kbn) {
           'from': from,
           'to': to,
           'function': options.targets[0].function,
-          'interval': options.targets[0].interval
+	  'interval': options.targets[0].interval,
+	  'merge': options.targets[0].merge
         }
       }).then(function(data) {
 	if (options.targets[0].alias) {
 	  data.data.target = options.targets[0].alias;
 	}
-        return {data: [data.data]};
+        return {data: data.data};
       });
     };
 
