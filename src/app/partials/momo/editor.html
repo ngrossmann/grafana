@@ -57,7 +57,17 @@
               <i class="icon-warning-sign"></i>
             </a>
           </li>
-					<li class="grafana-target-segment">
+	  <li class="grafana-target-segment">
+            Merge
+          </li>
+          <li>
+            <select ng-model="target.merge"
+                    class="grafana-target-segment-input input-small"
+                    ng-options="m for m in mergeOptions"
+                    ng-change="get_data()">
+            </select>
+          </li>
+	  <li class="grafana-target-segment">
             Aggregator
           </li>
           <li>
