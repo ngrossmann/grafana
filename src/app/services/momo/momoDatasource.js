@@ -70,7 +70,8 @@ function (angular, _, kbn) {
     MomoDatasource.prototype.saveDashboard = function(dashboard) {
       return $http.post('http://localhost:8080/dashboard', dashboard).then(
         function(response) {
-          return response.data;
+          return { title: response.data.title, url: '/dashboard/db/' + 
+            response.data.id };
         }
       );
     };
@@ -87,15 +88,14 @@ function (angular, _, kbn) {
 
           for (var i = 0; i < dashboards.length; i++) {
             var hit = {
-              id: dashboards[i].title,
+              id: dashboards[i].id,
               title: dashboards[i].title,
               tags: dashboards[i].tags
             };
             hits.dashboards.push(hit);
-          }
+          }   
           return hits;
-        }
-      );
+        });
     };
 
     return MomoDatasource;
