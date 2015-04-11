@@ -35,7 +35,7 @@ function (angular, _, kbn) {
       var to = kbn.parseDate(options.range.to).getTime();
 
       return $http({
-        url: 'http://localhost:8080/series',
+        url: '/series',
         method: 'GET',
         params: {
           'series': options.targets[0].metric,
@@ -55,7 +55,7 @@ function (angular, _, kbn) {
 
     MomoDatasource.prototype.performSuggestQuery = function(query) {
       return $http({
-        url: 'http://localhost:8080/metrics',
+        url: '/metrics',
         method: 'GET',
         params: {'series': query }
       }).then(function(data) { return data.data; });
@@ -63,12 +63,12 @@ function (angular, _, kbn) {
 
     MomoDatasource.prototype.getDashboard = function(id, isTemp) {
       isTemp = isTemp;
-      return $http.get('http://localhost:8080/dashboard/' + id).then(
+      return $http.get('/dashboard/' + id).then(
         function(response) { return response.data; });
     };
 
     MomoDatasource.prototype.saveDashboard = function(dashboard) {
-      return $http.post('http://localhost:8080/dashboard', dashboard).then(
+      return $http.post('/dashboard', dashboard).then(
         function(response) {
           return { title: response.data.title, url: '/dashboard/db/' + 
             response.data.id };
@@ -77,7 +77,7 @@ function (angular, _, kbn) {
     };
 
     MomoDatasource.prototype.searchDashboards = function(queryString) {
-      return $http.get('http://localhost:8080/dashboard?query=' + queryString).then(
+      return $http.get('/dashboard?query=' + queryString).then(
         function(response) {
           var dashboards = response.data.dashboards;
           var hits = {
