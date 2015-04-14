@@ -8,7 +8,7 @@ function (angular, _, kbn) {
   'use strict';
 
   var module = angular.module('grafana.services');
-  module.factory('MomoDatasource', function($q, $http) {
+  module.factory('MomoDatasource', function($q, $http, templateSrv) {
 
     // the datasource object passed to constructor
     // is the same defined in config.js
@@ -38,7 +38,7 @@ function (angular, _, kbn) {
         url: '/series',
         method: 'GET',
         params: {
-          'series': options.targets[0].metric,
+          'series': templateSrv.replace(options.targets[0].metric),
           'from': from,
           'to': to,
           'function': options.targets[0].function,
@@ -59,6 +59,24 @@ function (angular, _, kbn) {
         method: 'GET',
         params: {'series': query }
       }).then(function(data) { return data.data; });
+    };
+
+    MomoDatasource.prototype.metricFindQuery = function(query) {
+      var interpolated;
+      try {
+        interpolated = encodeURIComponent(templateSrv.replace(query));
+      }
+      catch(err) {
+        return $q.reject(err);
+      }
+      return $http.get('/metrics?series=' + interpolated).then(function(results) {
+        return _.map(results.data, function(metric) {
+          return {
+            text: metric,
+            expandable: false
+          };
+        });
+      });
     };
 
     MomoDatasource.prototype.getDashboard = function(id, isTemp) {
