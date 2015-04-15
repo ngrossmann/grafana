@@ -21,6 +21,19 @@ function (angular, _, kbn) {
       this.grafanaDB = datasource.grafanaDB;
     }
 
+    function createTargetName(target, alias) {
+      var regex = /\$(\d+)/g;
+      var segments = target.split('.');
+      return alias.replace(regex, function(match, group) {
+        var i = parseInt(group);
+        if (_.isNumber(i) && i >= 0 && i < segments.length) {
+          return segments[i];
+        } else {
+          return match;
+        }
+      });
+    }
+
     MomoDatasource.prototype.query = function(options) {
       /*
        * options.range.from
@@ -47,7 +60,8 @@ function (angular, _, kbn) {
         }
       }).then(function(data) {
 	if (options.targets[0].alias) {
-	  data.data.target = options.targets[0].alias;
+          data.data[0].target = createTargetName(data.data[0].target,
+            options.targets[0].alias);
 	}
         return {data: data.data};
       });
