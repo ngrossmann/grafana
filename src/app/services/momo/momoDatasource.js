@@ -47,23 +47,27 @@ function (angular, _, kbn) {
       var from = kbn.parseDate(options.range.from).getTime();
       var to = kbn.parseDate(options.range.to).getTime();
 
-      return $http({
-        url: '/series',
-        method: 'GET',
-        params: {
-          'series': templateSrv.replace(options.targets[0].metric),
-          'from': from,
-          'to': to,
-          'function': options.targets[0].function,
-	  'interval': options.targets[0].interval,
-	  'merge': options.targets[0].merge
-        }
-      }).then(function(data) {
-	if (options.targets[0].alias) {
-          data.data[0].target = createTargetName(data.data[0].target,
-            options.targets[0].alias);
-	}
-        return {data: data.data};
+      var promises = _.map(options.targets, function(target) {
+        return $http({
+          url: '/series',
+          method: 'GET',
+          params: {
+            'series': templateSrv.replace(target.metric),
+            'from': from,
+            'to': to,
+            'function': target.function,
+            'interval': target.interval,
+            'merge': target.merge
+          }
+        }).then(function(data) {
+          if (target.alias) {
+            data.data[0].target = createTargetName(data.data[0].target, target.alias);
+          }
+          return data.data;
+        });
+      });
+      return $q.all(promises).then(function(results) {
+        return { data: _.flatten(results) };
       });
     };
 
