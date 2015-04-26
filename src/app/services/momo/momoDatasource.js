@@ -1,3 +1,4 @@
+// vim: expandtab sw=2 st=2 smarttab:
 define([
   'angular',
   'lodash',
@@ -61,7 +62,10 @@ function (angular, _, kbn) {
           }
         }).then(function(data) {
           if (target.alias) {
-            data.data[0].target = createTargetName(data.data[0].target, target.alias);
+            data.data = _.map(data.data, function(d) {
+              d.target = createTargetName(d.target, target.alias);
+              return d;
+            });
           }
           return data.data;
         });
