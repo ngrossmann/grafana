@@ -12,7 +12,7 @@ function (angular) {
       var target = $scope.target;
       target.errors = {};
       target.function = target.function || 'mean';
-      target.merge = target.mergeOptions || 'false';
+      target.merge = target.merge || 'false';
       target.interval = target.interval || '1m';
       $scope.functions = ['max', 'min', 'mean', 'sum'];
       $scope.mergeOptions = ['false', 'true'];
