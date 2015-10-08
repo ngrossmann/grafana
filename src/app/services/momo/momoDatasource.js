@@ -116,6 +116,17 @@ function (angular, _, kbn) {
       );
     };
 
+    MomoDatasource.prototype.deleteDashboard = function(id) {
+      return $http.delete('/dashboard/' + id).then(
+        function(response) {
+          return response.data.id;
+        },
+        function(err) {
+          throw "Could not delete dashboard " + err.data;
+        }
+      );
+    };
+
     MomoDatasource.prototype.searchDashboards = function(queryString) {
       return $http.get('/dashboard?query=' + queryString).then(
         function(response) {
