@@ -6,7 +6,7 @@ function (angular) {
 
   var module = angular.module('grafana.controllers');
 
-  module.controller('MomoTargetCtrl', function($scope, $timeout) {
+  module.controller('MomoQueryCtrl', function($scope, $timeout) {
 
     $scope.init = function() {
       var target = $scope.target;
@@ -36,5 +36,7 @@ function (angular) {
         .performSuggestQuery(query, 'metrics')
         .then(callback);
     };
+
+    $scope.init();
   });
 });

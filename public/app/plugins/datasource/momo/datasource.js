@@ -2,10 +2,11 @@
 define([
   'angular',
   'lodash',
-  'kbn',
-  'moment'
+  'moment',
+  './directives',
+  './query_ctrl'
 ],
-function (angular, _, kbn) {
+function (angular, _) {
   'use strict';
 
   var module = angular.module('grafana.services');
@@ -14,12 +15,9 @@ function (angular, _, kbn) {
     // the datasource object passed to constructor
     // is the same defined in config.js
     function MomoDatasource(datasource) {
-      this.type = 'momo';
-      this.editorSrc = 'app/partials/momo/editor.html';
       this.name = datasource.name;
       this.supportMetrics = true;
       this.url = datasource.url;
-      this.grafanaDB = datasource.grafanaDB;
     }
 
     function createTargetName(target, alias) {
@@ -45,15 +43,15 @@ function (angular, _, kbn) {
        *   0: metric, function, target: randomWalk, column: "value"
        */
       // get from & to in seconds
-      var from = kbn.parseDate(options.range.from).getTime();
-      var to = kbn.parseDate(options.range.to).getTime();
+      var from = options.range.from.format('X');
+      var to = options.range.to.format('X');
 
       var promises = _.map(options.targets, function(target) {
         return $http({
           url: '/series',
           method: 'GET',
           params: {
-            'series': templateSrv.replace(target.metric),
+            'series': templateSrv.replace(target.target),
             'from': from,
             'to': to,
             'function': target.function,
@@ -110,7 +108,7 @@ function (angular, _, kbn) {
     MomoDatasource.prototype.saveDashboard = function(dashboard) {
       return $http.post('/dashboard', dashboard).then(
         function(response) {
-          return { title: response.data.title, url: '/dashboard/db/' + 
+          return { title: response.data.title, url: '/dashboard/db/' +
             response.data.id };
         }
       );
@@ -144,7 +142,7 @@ function (angular, _, kbn) {
               tags: dashboards[i].tags
             };
             hits.dashboards.push(hit);
-          }   
+          }
           return hits;
         });
     };
@@ -152,5 +150,4 @@ function (angular, _, kbn) {
     return MomoDatasource;
 
   });
-
 });
