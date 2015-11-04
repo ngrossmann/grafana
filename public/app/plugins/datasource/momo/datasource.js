@@ -10,7 +10,7 @@ function (angular, _) {
   'use strict';
 
   var module = angular.module('grafana.services');
-  module.factory('MomoDatasource', function($q, $http, templateSrv) {
+  module.factory('MomoDatasource', function($q, backendSrv, templateSrv) {
 
     // the datasource object passed to constructor
     // is the same defined in config.js
@@ -18,6 +18,7 @@ function (angular, _) {
       this.name = datasource.name;
       this.supportMetrics = true;
       this.url = datasource.url;
+      this.datasource = datasource;
     }
 
     function createTargetName(target, alias) {
@@ -45,10 +46,11 @@ function (angular, _) {
       // get from & to in seconds
       var from = options.range.from.format('X');
       var to = options.range.to.format('X');
+      var url = this.url + '/series';
 
       var promises = _.map(options.targets, function(target) {
-        return $http({
-          url: '/series',
+        var request = {
+          url: url,
           method: 'GET',
           params: {
             'series': templateSrv.replace(target.target),
@@ -58,7 +60,9 @@ function (angular, _) {
             'interval': target.interval,
             'merge': target.merge
           }
-        }).then(function(data) {
+        };
+
+        return backendSrv.datasourceRequest(request).then(function(data) {
           if (target.alias) {
             data.data = _.map(data.data, function(d) {
               d.target = createTargetName(d.target, target.alias);
@@ -74,8 +78,8 @@ function (angular, _) {
     };
 
     MomoDatasource.prototype.performSuggestQuery = function(query) {
-      return $http({
-        url: '/metrics',
+      return backendSrv.datasourceRequest({
+        url: this.url + '/metrics',
         method: 'GET',
         params: {'series': query }
       }).then(function(data) { return data.data; });
@@ -85,66 +89,30 @@ function (angular, _) {
       var interpolated;
       try {
         interpolated = encodeURIComponent(templateSrv.replace(query));
+        var options = {
+          url: this.url + '/metrics?series=' + interpolated,
+          method: 'GET'
+        };
+        return backendSrv.datasourceRequest(options).then(
+          function(results) {
+            return _.map(results.data, function(metric) {
+              return {
+                text: metric,
+                expandable: false
+              };
+            });
+          }
+        );
       }
       catch(err) {
         return $q.reject(err);
       }
-      return $http.get('/metrics?series=' + interpolated).then(function(results) {
-        return _.map(results.data, function(metric) {
-          return {
-            text: metric,
-            expandable: false
-          };
-        });
+    };
+
+    MomoDatasource.prototype.testDatasource = function() {
+      return this.metricFindQuery('*').then(function () {
+        return { status: "success", message: "Data source is working", title: "Success" };
       });
-    };
-
-    MomoDatasource.prototype.getDashboard = function(id, isTemp) {
-      isTemp = isTemp;
-      return $http.get('/dashboard/' + id).then(
-        function(response) { return response.data; });
-    };
-
-    MomoDatasource.prototype.saveDashboard = function(dashboard) {
-      return $http.post('/dashboard', dashboard).then(
-        function(response) {
-          return { title: response.data.title, url: '/dashboard/db/' +
-            response.data.id };
-        }
-      );
-    };
-
-    MomoDatasource.prototype.deleteDashboard = function(id) {
-      return $http.delete('/dashboard/' + id).then(
-        function(response) {
-          return response.data.id;
-        },
-        function(err) {
-          throw "Could not delete dashboard " + err.data;
-        }
-      );
-    };
-
-    MomoDatasource.prototype.searchDashboards = function(queryString) {
-      return $http.get('/dashboard?query=' + queryString).then(
-        function(response) {
-          var dashboards = response.data.dashboards;
-          var hits = {
-            dashboards: [],
-            tags: [],
-            tagsOnly: false
-          };
-
-          for (var i = 0; i < dashboards.length; i++) {
-            var hit = {
-              id: dashboards[i].id,
-              title: dashboards[i].title,
-              tags: dashboards[i].tags
-            };
-            hits.dashboards.push(hit);
-          }
-          return hits;
-        });
     };
 
     return MomoDatasource;
