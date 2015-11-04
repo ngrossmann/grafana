@@ -1,0 +1,16 @@
+{
+  "pluginType": "datasource",
+  "name": "Momo",
+
+  "type": "momo",
+  "serviceName": "MomoDatasource",
+
+  "module": "app/plugins/datasource/momo/datasource",
+
+  "partials": {
+    "config": "app/plugins/datasource/momo/partials/config.html"
+  },
+
+  "metrics": true,
+  "defaultMatchFormat": "pipe"
+}
