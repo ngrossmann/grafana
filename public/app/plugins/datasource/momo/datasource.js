@@ -53,12 +53,10 @@ function (angular, _) {
           url: url,
           method: 'GET',
           params: {
-            'series': templateSrv.replace(target.target),
+            'q': templateSrv.replace(target.target),
             'from': from,
             'to': to,
-            'function': target.function,
-            'interval': target.interval,
-            'merge': target.merge
+            'interval': target.interval
           }
         };
 
@@ -78,11 +76,36 @@ function (angular, _) {
     };
 
     MomoDatasource.prototype.performSuggestQuery = function(query) {
-      return backendSrv.datasourceRequest({
-        url: this.url + '/metrics',
-        method: 'GET',
-        params: {'series': query }
-      }).then(function(data) { return data.data; });
+      var lastComma = query.lastIndexOf(',');
+      var prefix = "";
+      var pattern = query;
+      if (lastComma > 0) {
+        pattern = query.substring(lastComma + 1);
+        prefix = query.substring(0, lastComma + 1);
+      }
+      var doPrefix = function(array) {
+        return _.map(array, function(suffix) {
+          return prefix + suffix;
+        });
+      };
+      if (pattern.charAt(0) === ':') {
+        return $q(function(resolve) {
+          resolve([
+            ":avg",
+            ":div",
+            ":minus",
+            ":mul",
+            ":plus"]);
+        }).then(doPrefix);
+      } else if (pattern.length >= 3) {
+        return backendSrv.datasourceRequest({
+          url: this.url + '/metrics',
+          method: 'GET',
+          params: {'series': pattern }
+        }).then(function(data) { return data.data; }).then(doPrefix);
+      } else {
+        return null;
+      }
     };
 
     MomoDatasource.prototype.metricFindQuery = function(query) {
