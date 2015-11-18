@@ -1,3 +1,4 @@
+// vim: expandtab sw=2 st=2 smarttab:
 define([
   'angular'
 ],
@@ -32,9 +33,12 @@ function (angular) {
     };
 
     $scope.suggestMetrics = function(query, callback) {
+      var debugCallback = function(data) {
+        callback(data);
+      };
       $scope.datasource
         .performSuggestQuery(query, 'metrics')
-        .then(callback);
+        .then(debugCallback);
     };
 
     $scope.init();
